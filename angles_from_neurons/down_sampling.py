@@ -2,12 +2,6 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-beh_data_dir = "COBAR_behaviour_incl_manual.pkl"
-beh_df = pd.read_pickle(beh_data_dir)
-
-neural_data_dir = "COBAR_neural.pkl"
-neural_df = pd.read_pickle(neural_data_dir)
-
 # these two functions are just wrappers around the numpy functions to apply them across dimension 0 only
 def reduce_mean(values):
     return np.mean(values, axis=0)
@@ -70,31 +64,14 @@ def reduce_during_2p_frame(twop_index, values, function=reduce_mean):
 
     return np.squeeze(reduced) if squeeze else reduced
 
-# Trial indices
-trial_indices = beh_df.index.get_level_values("Trial") == 2
-
-# Get the joint angles 
-beh_angles = beh_df.filter(regex = "angle")[trial_indices].to_numpy()
-
-# Get the 2-photon indices
-twop_index = beh_df[trial_indices]["twop_index"].to_numpy()
-
-# Down-sample the joint angles
-beh_angles_red = reduce_during_2p_frame(twop_index, beh_angles, function=reduce_mean)
-
-# Get the behavioural labels
-labels = beh_df[trial_indices]["Manual"].to_numpy()
-
-# Down-sample the behavioural labels
-labels_red = reduce_during_2p_frame(twop_index, labels, function=reduce_behaviour)
-
-trial_indices = neural_df.index.get_level_values("Trial") == 2
-
-# Get the neural data 
-neural_data = neural_df.filter(regex = "neuron")[trial_indices].to_numpy()
-
-print(beh_angles_red.shape)
-print(labels_red.shape)
-print(neural_data.shape)
+def down_sampling(beh_data, beh_labels, twop_index):
+    
+    # Down-sample the joint angles and position
+    beh_angles_red = reduce_during_2p_frame(twop_index, beh_data, function=reduce_mean)
+    
+    # Down-sample the behavioural labels
+    labels_red = reduce_during_2p_frame(twop_index, beh_labels, function=reduce_behaviour)
+    
+    return beh_angles_red, labels_red 
 
 
