@@ -10,7 +10,7 @@ def load_beh_data(path):
     
     beh_df = pd.read_pickle(path)
     indexes = [index for index in beh_df.columns if ('angle' in index or 'joint' in index)] + ['t']
-    
+    breakpoint()
     nb_trials_train = 10
     nb_trials_validation = 1
     nb_trials_test = 1
