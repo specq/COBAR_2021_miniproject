@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from data_loader import loadDataset
 from trainer import train
  
-trainloader, valloader = loadDataset(batch_size=64)
+trainloader, valloader = loadDataset('train_bal.pkl', 'val_bal.pkl', batch_size=64)
 
 model = nn.Sequential(nn.Linear(123, 1000),
                       nn.ReLU(),

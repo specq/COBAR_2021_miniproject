@@ -72,7 +72,7 @@ def create_data_set(beh_df, neural_df, val_ratio, test_ratio):
     y = torch.Tensor(y)
     y = y.view(y.size(0)*y.size(1)).long()
     x_bal, y_bal = balance_dataset(x, y)
-    return x_bal, y_bal.long()
+    return x, y, x_bal, y_bal.long()
 
         
 beh_df = pd.read_pickle("COBAR_behaviour_incl_manual.pkl")
@@ -82,7 +82,7 @@ val_ratio = 0.2
 test_ratio = 0.2
 train_ratio = 0.6
 
-x_bal, y_bal = create_data_set(beh_df, neural_df, val_ratio, test_ratio)
+x, y, x_bal, y_bal = create_data_set(beh_df, neural_df, val_ratio, test_ratio)
 
 N = x_bal.size(0)
 x_train = x_bal[:math.floor(train_ratio*N)]
@@ -92,17 +92,22 @@ y_train = y_bal[:math.floor(train_ratio*N)]
 y_val = y_bal[math.floor(train_ratio*N):math.floor((train_ratio+val_ratio)*N)]
 y_test = y_bal[math.floor((train_ratio+val_ratio)*N):N]
 
-file = open("train.pkl", "wb")
+file = open("train_bal.pkl", "wb")
 pickle.dump(x_train, file)
 pickle.dump(y_train, file)
 file.close()
 
-file = open("val.pkl", "wb")
+file = open("val_bal.pkl", "wb")
 pickle.dump(x_val, file)
 pickle.dump(y_val, file)
 file.close()
 
-file = open("test.pkl", "wb")
+file = open("test_bal.pkl", "wb")
 pickle.dump(x_test, file)
 pickle.dump(y_test, file)
+file.close()
+
+file = open("test.pkl", "wb")
+pickle.dump(x, file)
+pickle.dump(y, file)
 file.close()
