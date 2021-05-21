@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import pickle
 
-file = open("test_all.pkl", "rb")
+file = open("test_bal.pkl", "rb")
 x_test = pickle.load(file)
 y_test = pickle.load(file)
 

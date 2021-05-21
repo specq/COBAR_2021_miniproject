@@ -9,7 +9,7 @@ import time
 def train(model, trainloader, valloader, epochs=25, lr=1e-3):
     criterion = torch.nn.CrossEntropyLoss()
     optimizer = optim.SGD(model.parameters(), lr=lr)
-    lr_lambda = lambda e: 0.99**e
+    lr_lambda = lambda e: 0.8**e
     scheduler = optim.lr_scheduler.LambdaLR(optimizer, lr_lambda)
     
     steps = 0

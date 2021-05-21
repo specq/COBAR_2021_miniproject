@@ -31,13 +31,18 @@ def compute_label_distribution(labels):
 
 def balance_dataset(x, y):
     unique_labels, nb_sample_per_label = compute_label_distribution(y)
-    nb_samples_per_class = min(nb_sample_per_label)
+    nb_samples_per_class = max(nb_sample_per_label)
     x_balanced = torch.empty([0, x.size(1)])
     y_balanced = torch.empty(0)
     for label in unique_labels:
         indices = (y == label)
-        samples = x[indices][:nb_samples_per_class]
-        labels = y[indices][:nb_samples_per_class]
+        samples = x[indices]
+        labels = y[indices]
+        while 2*samples.size(0) < nb_samples_per_class:
+            samples = torch.cat([samples, samples], dim=0)
+            labels = torch.cat([labels, labels], dim=0)
+        samples = torch.cat([samples, samples[:(nb_samples_per_class-samples.size(0))]], dim=0)
+        labels = torch.cat([labels, labels[:(nb_samples_per_class-labels.size(0))]], dim=0)
         x_balanced = torch.cat([x_balanced, samples], dim=0)
         y_balanced = torch.cat([y_balanced, labels], dim=0)
     indices_suffled = torch.randperm(y_balanced.size(0))

@@ -17,5 +17,5 @@ model = nn.Sequential(nn.Linear(123, 1000),
                       nn.ReLU(),
                       nn.Linear(1000, 5))
 
-train(model, trainloader, valloader, epochs=200, lr=1e-3)
+train(model, trainloader, valloader, epochs=25, lr=1e-3)
 torch.save(model.state_dict(), 'model.ckpt')
