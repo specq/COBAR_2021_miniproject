@@ -123,25 +123,28 @@ score_forest = clf_forest.score(angles_test, labels_test)
 
 
 #%% SVM
-clf_svm = svm.SVC()
+clf_svm = svm.SVC() 
 clf_svm.fit(angles_train, labels_train)
-#%%
+clf_svm_26 = svm.SVC(C=10, kernel='sigmoid', gamma=1) 
+clf_svm_26.fit(angles_train, labels_train)
+clf_svm_41 = svm.SVC(C=100, kernel='sigmoid', gamma=0.1) 
+clf_svm_41.fit(angles_train, labels_train)
+#%% SVM score
 score_test_svm = clf_svm.score(angles_test, labels_test)
+score_test_svm_26 = clf_svm_26.score(angles_test, labels_test)
+score_test_svm_41 = clf_svm_41.score(angles_test, labels_test)
 
 #%% SVM Grid Search
 
-#param_grid = {'C': [0.1,1, 10, 100], 'gamma': [1,0.1,0.01,0.001],'kernel': ['rbf', 'poly', 'sigmoid']}
-param_grid = {'C': [0.1, 1, 10, 100], 'gamma': [1,0.1,0.01,0.001]}
-grid = GridSearchCV(svm.SVC(),param_grid,refit=True,verbose=2)
-grid.fit(angles_train, labels_train)
+# param_grid = {'C': [0.1,1, 10, 100], 'gamma': [1,0.1,0.01,0.001],'kernel': ['rbf', 'poly', 'sigmoid']}
+# grid = GridSearchCV(svm.SVC(),param_grid,refit=True,verbose=2)
+# grid.fit(angles_train, labels_train)
 
 #%%
-arf = grid.cv_results_['params'][grid.best_index_]
-print(arf)
-#%%
-score_test_svm = grid.score(angles_test, labels_test)
-
-#%%
+# best_ind = grid.cv_results_['params'][grid.best_index_]
+# print(best_ind)
+# best_sc = grid.best_score_
+# print(best_sc)
 #%%
 #%%
 #%%
