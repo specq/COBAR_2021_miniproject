@@ -152,7 +152,7 @@ def select_best_neurons(data, labels):
             
             #compare the activity of one neuron for all behaviours
             for j in range(labels_name.size):
-                delta = (F_beh_mean[i,n]-F_beh_std[i,n])-(F_beh_mean[j,n]+F_beh_std[j,n])
+                delta = (F_beh_mean[i,n]-2*F_beh_std[i,n])-(F_beh_mean[j,n]+2*F_beh_std[j,n])
                 if(i!=j and delta < delta_min):
                     delta_min = delta
             delta_min_neurons = np.append(delta_min_neurons,delta_min)
@@ -177,11 +177,37 @@ labels_name = np.unique(labels)
 #%% Select best neurons
 
 #best_neurons_F, delta_min_F, mean_F, index_F = select_best_neurons(F, labels)
-#best_neurons_dF_fr, delta_min_dF_fr, mean_dF_fr, index_df_fr = select_best_neurons(dF_over_F_fr, labels)
-best_neurons_dF_ne, delta_min_dF_ne, mean_dF_ne, std_df_ne = select_best_neurons(dF_over_F_ne, labels)
+#best_neurons_dF_fr, delta_min_dF_fr, mean_dF_fr, index_dF_fr = select_best_neurons(dF_over_F_fr, labels)
+best_neurons_dF_ne, delta_min_dF_ne, mean_dF_ne, std_dF_ne = select_best_neurons(dF_over_F_ne, labels)
 
 #%%
+prediction = np.empty([np.size(dF_over_F_ne,0),labels_name.size+2],dtype = 'O')
+prediction[:,labels_name.size+1] = labels
+
+#best_neur = [71, 35, 24, 52, 97]
+best_neur = best_neurons_dF_ne[:,0].astype(int)
+
+for i in range(np.size(dF_over_F_ne,0)):
+    neurs = dF_over_F_ne[i,:]
+    maximum = 0
+    max_index = -1
+    for j in range(labels_name.size):
+
+        threshold = mean_dF_ne[j,best_neur[j]]-2*std_dF_ne[j,best_neur[j]]
+        if neurs[best_neur[j]] > threshold:
+            prediction[i,j] = labels_name[j]
+            delta = (neurs[best_neur[j]]-threshold)/threshold
+            if delta > maximum :
+                maximum = delta
+                max_index = j
+    if max_index != -1 :
+        prediction[i,labels_name.size] = labels_name[max_index]
+    else :
+        prediction[i,labels_name.size] = 'None'  
+
 #%%
+no_prediction = sum(prediction[:,5] == 'None')
+accuracy =sum(prediction[:,5] == prediction[:,6])/np.size(prediction,0)
 #%%
 #%%
 #%%
