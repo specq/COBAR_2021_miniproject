@@ -121,7 +121,7 @@ def down_sampling(beh_df):
     return angles_red_tot, labels_red_tot
 
 
-def select_best_neurons(data, labels, ratio):
+def select_best_neurons(data, labels):
     
     F_beh = []
 
@@ -131,28 +131,33 @@ def select_best_neurons(data, labels, ratio):
     
     F_beh_mean = []
     neur_indexes_sorted_desc = []
-    F_beh_mean_sum = []
+    delta_min_tot = []
     best_neurons = []
     
     for i in range(labels_name.size):
         F_beh_mean.append(np.mean(F_beh[i],0))
-        F_beh_mean_sum.append(np.sum(F_beh_mean[i]))
         neur_indexes_sorted_desc.append(np.argsort(F_beh_mean[i])[::-1])
         
-        neurons = np.array([])
         
-        n = 0
-        sum_neur = 0
+    for i in range(labels_name.size):
         
-        while sum_neur/F_beh_mean_sum[i] < ratio :
-            index_neur = neur_indexes_sorted_desc[i][n]
-            sum_neur+= F_beh_mean[i][index_neur]
-            neurons = np.append(neurons, index_neur)
-            n += 1
-        
-        best_neurons.append(neurons)
+        delta_min_neurons = np.array([])
+         
+        for n in range(np.size(data,1)):
+            #initialize min at a high value 
+            delta_min = 1000*max(F_beh_mean[0])
+            
+            #compare the activity of one neuron for all behaviours
+            for j in range(labels_name.size):
+                delta = F_beh_mean[i][n]-F_beh_mean[j][n]
+                if(i!=j and delta < delta_min):
+                    delta_min = delta
+            delta_min_neurons = np.append(delta_min_neurons,delta_min)
+        delta_min_tot.append(delta_min_neurons)
+        best_neurons.append(np.argsort(delta_min_neurons)[::-1])
+                    
     
-    return best_neurons, F_beh_mean, neur_indexes_sorted_desc
+    return best_neurons, delta_min_tot, F_beh_mean, neur_indexes_sorted_desc
     
 
 #%% Load data and downsample
@@ -168,11 +173,9 @@ labels_name = np.unique(labels)
 
 #%% Select best neurons
 
-ratio = 0.25
-
-best_neurons_F, mean_F, index_F = select_best_neurons(F, labels, ratio)
-best_neurons_dF_fr, mean_dF_fr, index_df_fr = select_best_neurons(dF_over_F_fr, labels, ratio)
-best_neurons_dF_ne, mean_dF_ne, index_df_ne = select_best_neurons(dF_over_F_ne, labels, ratio)
+#best_neurons_F, delta_min_F, mean_F, index_F = select_best_neurons(F, labels)
+#best_neurons_dF_fr, delta_min_dF_fr, mean_dF_fr, index_df_fr = select_best_neurons(dF_over_F_fr, labels)
+best_neurons_dF_ne, delta_min_dF_ne, mean_dF_ne, index_df_ne = select_best_neurons(dF_over_F_ne, labels)
 
 #%%
 #%%
