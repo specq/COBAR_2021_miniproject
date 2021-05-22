@@ -8,9 +8,23 @@ import math
 
 labels = {'abdominal_pushing' : 0, 'anterior_grooming' : 1, 'posterior_grooming' : 2, 'walking' : 3, 'resting' : 4}
 
-def compute_delta_F_over_F(F):
+
+def compute_delta_F_over_F_frame(F):
     # Sort the intensities
     F_sorted = np.sort(F)
+    
+    # Calculate the baseline intensity
+    q10_index = int(0.1*np.size(F_sorted,1))
+    F0 = np.mean(F_sorted[:,:q10_index], axis=1)
+    
+    # Calculate flurescence changes and filter
+    delta_F_over_F = np.transpose((np.transpose(F)-F0)/F0)*100
+    
+    return delta_F_over_F
+
+def compute_delta_F_over_F_neuron(F):
+    # Sort the intensities
+    F_sorted = np.sort(F,0)
     
     # Calculate the baseline intensity
     q10_index = int(0.1*len(F_sorted))
@@ -20,6 +34,7 @@ def compute_delta_F_over_F(F):
     delta_F_over_F = (F-F0)/F0*100
     
     return delta_F_over_F
+
 
 def compute_label_distribution(labels):
     L = labels.size(0)
@@ -64,7 +79,7 @@ def create_data_set(beh_df, neural_df, val_ratio, test_ratio):
         # Get neural data
         neural_trial = neural_df[neural_df.index.get_level_values("Trial") == k]
         F = neural_trial.filter(regex = "neuron").to_numpy()
-        delta_F_over_F = compute_delta_F_over_F(F)
+        delta_F_over_F = compute_delta_F_over_F_neuron(F)
         
         # Down-sample the behavioural data
         _, beh_labels_red = down_sampling(beh_joints, beh_labels, twop_index)
