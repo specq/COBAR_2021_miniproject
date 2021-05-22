@@ -129,14 +129,15 @@ def select_best_neurons(data, labels):
     for label in labels_name:
         F_beh.append(data[labels == label][:])
     
-    F_beh_mean = []
-    neur_indexes_sorted_desc = []
-    delta_min_tot = []
-    best_neurons = []
+    F_beh_mean = np.empty([0,123])
+    neur_indexes_sorted_desc = np.empty([0,123])
+    delta_min_tot = np.empty([0,123])
+    best_neurons = np.empty([0,123])
     
     for i in range(labels_name.size):
-        F_beh_mean.append(np.mean(F_beh[i],0))
-        neur_indexes_sorted_desc.append(np.argsort(F_beh_mean[i])[::-1])
+        F_beh_mean = np.append(F_beh_mean,[np.mean(F_beh[i],0)], axis=0)
+        neur_indexes_sorted_desc = np.append(neur_indexes_sorted_desc, \
+                                             [np.argsort(F_beh_mean[i,:])[::-1]],axis=0)
         
         
     for i in range(labels_name.size):
@@ -153,8 +154,8 @@ def select_best_neurons(data, labels):
                 if(i!=j and delta < delta_min):
                     delta_min = delta
             delta_min_neurons = np.append(delta_min_neurons,delta_min)
-        delta_min_tot.append(delta_min_neurons)
-        best_neurons.append(np.argsort(delta_min_neurons)[::-1])
+        delta_min_tot = np.append(delta_min_tot,[np.sort(delta_min_neurons)[::-1]],axis=0)
+        best_neurons = np.append(best_neurons,[np.argsort(delta_min_neurons)[::-1]],axis=0)
                     
     
     return best_neurons, delta_min_tot, F_beh_mean, neur_indexes_sorted_desc
