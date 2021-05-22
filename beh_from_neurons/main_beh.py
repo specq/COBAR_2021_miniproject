@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from data_loader import loadDataset
 from trainer import train
  
-trainloader, valloader = loadDataset('train_bal.pkl', 'val_bal.pkl', batch_size=64)
+trainloader, valloader = loadDataset('train.pkl', 'val.pkl', batch_size=64)
 
 model = nn.Sequential(nn.Linear(123, 1000),
                       nn.ReLU(),
@@ -17,5 +17,5 @@ model = nn.Sequential(nn.Linear(123, 1000),
                       nn.ReLU(),
                       nn.Linear(1000, 5))
 
-train(model, trainloader, valloader, epochs=25, lr=1e-3)
+train(model, trainloader, valloader, epochs=20, lr=5e-3)
 torch.save(model.state_dict(), 'model.ckpt')

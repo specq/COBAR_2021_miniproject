@@ -10,10 +10,10 @@ labels = {'abdominal_pushing' : 0, 'anterior_grooming' : 1, 'posterior_grooming'
 
 def compute_delta_F_over_F(F):
     # Sort the intensities
-    F_sorted = np.sort(F)
+    F_sorted = np.sort(F, axis=0)
     
     # Calculate the baseline intensity
-    q10_index = int(0.1*len(F_sorted))
+    q10_index = int(0.1*F_sorted.shape[0])
     F0 = np.mean(F_sorted[:q10_index], axis=0)
     
     # Calculate flurescence changes and filter
@@ -71,48 +71,52 @@ def create_data_set(beh_df, neural_df, val_ratio, test_ratio):
         x[k] = delta_F_over_F
         y[k] = [labels[p] for p in beh_labels_red]
 
-    
+    # Resize dataset
     x = torch.Tensor(x)
     x = x.view(x.size(0)*x.size(1), x.size(2))
     y = torch.Tensor(y)
     y = y.view(y.size(0)*y.size(1)).long()
-    x_bal, y_bal = balance_dataset(x, y)
-    return x, y, x_bal, y_bal.long()
+    
+    #Suffle dataset
+    indices_suffled = torch.randperm(y.size(0))
+    x = x[indices_suffled]
+    y = y[indices_suffled]
+    
+    # Create dataset
+    test_split = math.floor(test_ratio*x.size(0))
+    val_split = math.floor((test_ratio+val_ratio)*x.size(0))
+    x_test = x[:test_split]
+    y_test = y[:test_split]
+    x_val = x[test_split:val_split]
+    y_val = y[test_split:val_split]
+    x_train = x[val_split:]
+    y_train = y[val_split:]
+    
+    x_train, y_train = balance_dataset(x_train, y_train)
+    
+    return x_train, y_train, x_val, y_val, x_test, y_test
 
         
 beh_df = pd.read_pickle("COBAR_behaviour_incl_manual.pkl")
 neural_df = pd.read_pickle("COBAR_neural.pkl")
 
 val_ratio = 0.2
-test_ratio = 0.2
-train_ratio = 0.6
+test_ratio = 0.3
+train_ratio = 0.5
 
-x, y, x_bal, y_bal = create_data_set(beh_df, neural_df, val_ratio, test_ratio)
+x_train, y_train, x_val, y_val, x_test, y_test = create_data_set(beh_df, neural_df, val_ratio, test_ratio)
 
-N = x_bal.size(0)
-x_train = x_bal[:math.floor(train_ratio*N)]
-x_val = x_bal[math.floor(train_ratio*N):math.floor((train_ratio+val_ratio)*N)]
-x_test = x_bal[math.floor((train_ratio+val_ratio)*N):N]
-y_train = y_bal[:math.floor(train_ratio*N)]
-y_val = y_bal[math.floor(train_ratio*N):math.floor((train_ratio+val_ratio)*N)]
-y_test = y_bal[math.floor((train_ratio+val_ratio)*N):N]
-
-file = open("train_bal.pkl", "wb")
+file = open("train.pkl", "wb")
 pickle.dump(x_train, file)
 pickle.dump(y_train, file)
 file.close()
 
-file = open("val_bal.pkl", "wb")
+file = open("val.pkl", "wb")
 pickle.dump(x_val, file)
 pickle.dump(y_val, file)
 file.close()
 
-file = open("test_bal.pkl", "wb")
+file = open("test.pkl", "wb")
 pickle.dump(x_test, file)
 pickle.dump(y_test, file)
-file.close()
-
-file = open("test.pkl", "wb")
-pickle.dump(x, file)
-pickle.dump(y, file)
 file.close()
