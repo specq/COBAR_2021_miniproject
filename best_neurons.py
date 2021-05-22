@@ -130,12 +130,14 @@ def select_best_neurons(data, labels):
         F_beh.append(data[labels == label][:])
     
     F_beh_mean = np.empty([0,123])
+    F_beh_std = np.empty([0,123])
     neur_indexes_sorted_desc = np.empty([0,123])
     delta_min_tot = np.empty([0,123])
     best_neurons = np.empty([0,123])
     
     for i in range(labels_name.size):
         F_beh_mean = np.append(F_beh_mean,[np.mean(F_beh[i],0)], axis=0)
+        F_beh_std = np.append(F_beh_std,[np.std(F_beh[i],0)], axis=0)
         neur_indexes_sorted_desc = np.append(neur_indexes_sorted_desc, \
                                              [np.argsort(F_beh_mean[i,:])[::-1]],axis=0)
         
@@ -150,7 +152,7 @@ def select_best_neurons(data, labels):
             
             #compare the activity of one neuron for all behaviours
             for j in range(labels_name.size):
-                delta = F_beh_mean[i][n]-F_beh_mean[j][n]
+                delta = (F_beh_mean[i,n]-F_beh_std[i,n])-(F_beh_mean[j,n]+F_beh_std[j,n])
                 if(i!=j and delta < delta_min):
                     delta_min = delta
             delta_min_neurons = np.append(delta_min_neurons,delta_min)
@@ -158,7 +160,7 @@ def select_best_neurons(data, labels):
         best_neurons = np.append(best_neurons,[np.argsort(delta_min_neurons)[::-1]],axis=0)
                     
     
-    return best_neurons, delta_min_tot, F_beh_mean, neur_indexes_sorted_desc
+    return best_neurons, delta_min_tot, F_beh_mean, F_beh_std
     
 
 #%% Load data and downsample
@@ -176,7 +178,7 @@ labels_name = np.unique(labels)
 
 #best_neurons_F, delta_min_F, mean_F, index_F = select_best_neurons(F, labels)
 #best_neurons_dF_fr, delta_min_dF_fr, mean_dF_fr, index_df_fr = select_best_neurons(dF_over_F_fr, labels)
-best_neurons_dF_ne, delta_min_dF_ne, mean_dF_ne, index_df_ne = select_best_neurons(dF_over_F_ne, labels)
+best_neurons_dF_ne, delta_min_dF_ne, mean_dF_ne, std_df_ne = select_best_neurons(dF_over_F_ne, labels)
 
 #%%
 #%%
