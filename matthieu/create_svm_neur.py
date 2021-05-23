@@ -185,22 +185,43 @@ train_ratio = 0.5
 
 x_train, y_train, weights, x_val, y_val, x_test, y_test = create_data_set(dF_ov_F_wav, labels, val_ratio, test_ratio)
 #%% Save test dataset
-x_test_neur = np.concatenate([x_val,x_test],axis=0)
-y_test_neur = np.concatenate([y_val,y_test],axis=0)
+# x_test_neur = np.concatenate([x_val,x_test],axis=0)
+# y_test_neur = np.concatenate([y_val,y_test],axis=0)
 
 file = open("test_neur.pkl", "wb")
-pickle.dump(x_test_neur, file)
-pickle.dump(y_test_neur, file)
+pickle.dump(x_test, file)
+pickle.dump(y_test, file)
 file.close()
+
+#%% SVM Tuning
+C_svm = [1, 5, 10, 25, 50, 100] 
+kernel = ['rbf', 'poly']
+
+params = np.empty((0,2))
+scores = np.empty(0)
+
+
+for c in C_svm:
+    for k in kernel:
+        print('C =',c, 'kernel =',k)
+        params = np.concatenate((params, [[c,k]]))
+        clf_svm = svm.SVC(C = c, kernel = k) 
+        clf_svm.fit(x_train, y_train,sample_weight=weights)
+        score_svm = clf_svm.score(x_val, y_val)
+        scores = np.concatenate((scores,[score_svm]))
+        print('Score = ',score_svm)
+
+scores_index_sorted_desc = np.argsort(scores)[::-1]
+best_trial = int(scores_index_sorted_desc[0])
+best_score = scores[best_trial]
+best_params = params[best_trial]
 
 #%% SVM
 print("Start SVM")
-clf_svm = svm.SVC() 
+clf_svm = svm.SVC(C = best_params[0], kernel = best_params[1]) 
 clf_svm.fit(x_train, y_train,sample_weight=weights)
 pickle.dump(clf_svm, open('svm_neur_weight.sav', 'wb'))
 print("SVM model saved")
-
-#%%
 #%%
 #%%
 #%%
