@@ -11,7 +11,7 @@ import time
 class LSTMNet(nn.Module):
     
     
-    def __init__(self, input_size, output_size, hidden_dim, n_layers, device):
+    def __init__(self, input_size, output_size, hidden_dim, n_layers, dim_linear, device):
         super(LSTMNet, self).__init__()
         
         # Defining some parameters
@@ -22,9 +22,8 @@ class LSTMNet(nn.Module):
         # Defining the layers
         # RNN Layer
         self.lstm = nn.LSTM(input_size, hidden_dim, n_layers, batch_first=True)
-        # Fully connected layer
-        self.fc = nn.Linear(hidden_dim, output_size)
-        self.activation = nn.CELU()
+        # stack of fully connected layers
+        self.seq = nn.Sequential(nn.Linear(hidden_dim, dim_linear), nn.CELU(), nn.Linear(dim_linear, output_size), nn.CELU())
     
     
     def forward(self, x):
@@ -39,10 +38,9 @@ class LSTMNet(nn.Module):
         out, (_, _) = self.lstm(x, (hidden, cell))
         #print('1 : ', out.shape, hidden.shape)
         
-        # Reshaping the outputs such that it can be fit into the fully connected layer
+        # Reshaping the outputs such that it can be fit into the fully connected layers
         out = out[ : , -1]
-        out = self.fc(out)
-        out = self.activation(out)
+        out = self.seq(out)
         
         return out, hidden
     
