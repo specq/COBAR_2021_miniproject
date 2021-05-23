@@ -194,7 +194,7 @@ pickle.dump(y_test, file)
 file.close()
 
 #%% SVM Tuning
-C_svm = [1, 5, 10, 25, 50, 100] 
+C_svm = [1, 10, 100, 150, 250, 500, 750, 1000] 
 kernel = ['rbf', 'poly']
 
 params = np.empty((0,2))
@@ -218,7 +218,7 @@ best_params = params[best_trial]
 
 #%% SVM
 print("Start SVM")
-clf_svm = svm.SVC(C = best_params[0], kernel = best_params[1]) 
+clf_svm = svm.SVC(C = 500, kernel = 'rbf') 
 clf_svm.fit(x_train, y_train,sample_weight=weights)
 pickle.dump(clf_svm, open('svm_neur_weight.sav', 'wb'))
 print("SVM model saved")
