@@ -168,35 +168,7 @@ labels_name = np.unique(labels)
 #%% Select best neurons
 
 best_neurons, delta_min, mean, std = select_best_neurons(dF_over_F, labels)
-
-#%%
-prediction = np.empty([np.size(dF_over_F,0),labels_name.size+2],dtype = 'O')
-prediction[:,labels_name.size+1] = labels
-
 best_neur = best_neurons[:,0].astype(int)
-
-for i in range(np.size(dF_over_F,0)):
-    neurs = dF_over_F[i,:]
-    maximum = 0
-    max_index = -1
-    for j in range(labels_name.size):
-
-        threshold = mean[j,best_neur[j]]-2*std[j,best_neur[j]]
-        if neurs[best_neur[j]] > threshold:
-            prediction[i,j] = labels_name[j]
-            delta = (neurs[best_neur[j]]-threshold)/threshold
-            if delta > maximum :
-                maximum = delta
-                max_index = j
-    if max_index != -1 :
-        prediction[i,labels_name.size] = labels_name[max_index]
-    else :
-        prediction[i,labels_name.size] = 'None'  
-
-#%%
-no_prediction = sum(prediction[:,5] == 'None')
-accuracy = np.mean(prediction[:,5] == prediction[:,6])
-print(accuracy)
 #%%
 mean_sorted = np.sort(mean)[:,::-1]
 mean_ind_sorted = np.argsort(mean)[:,::-1]
@@ -208,72 +180,83 @@ for label in labels_name:
     behaviour[:,i] = labels == label
     i += 1
 
-#%%
-# x = np.array(['abdominal_pushing', 'anterior_grooming',  'posterior_grooming',  'walking', 'resting' ])
-# y = mean_dF_ne[:,81]
-# e = std_dF_ne[:,81]
-
-# plt.errorbar(x, y, e, linestyle='None', marker='.')
-
-# plt.show()
-#%%
-start= 3000
-end = 5000
+#%% Plot neuron data at interesting times
+start= 16200
+end = 17700
 beh = 0
-#for i in range(np.size(labels_name,0)):
-plt.plot(range(start,end), scipy.stats.zscore(dF_over_F[start:end,best_neur[beh]]))
-plt.plot(range(start,end), behaviour[start:end,beh]*1)
+
+fig, ax = plt.subplots()
+
+ax.plot(time[start:end], scipy.stats.zscore(dF_over_F[start:end,best_neur[beh]]), label = 'neuron 54')
+ax.plot(time[start:end], behaviour[start:end,beh]*1, label = 'abdominal pushing')
+
+ax.set_ylabel('standardised neuronal activity')
+ax.set_xlabel('time (sec)')
+
+plt.legend(loc='upper right')
     
 plt.show()
 #%%
-start= 8000
+start= 8100
 end = 10000
 beh = 1
-#for i in range(np.size(labels_name,0)):
-plt.plot(range(start,end), scipy.stats.zscore(dF_over_F[start:end,best_neur[beh]]))
-plt.plot(range(start,end), behaviour[start:end,beh]*1)
+
+fig, ax = plt.subplots()
+
+ax.plot(time[start:end], scipy.stats.zscore(dF_over_F[start:end,best_neur[beh]]), label = 'neuron 35')
+ax.plot(time[start:end], behaviour[start:end,beh]*1, label = 'anterior grooming')
+
+ax.set_ylabel('standardised neuronal activity')
+ax.set_xlabel('time (sec)')
+
+plt.legend(loc='upper right')
     
 plt.show()
 #%%
 start= 17500
 end = 20000
 beh = 2
-#for i in range(np.size(labels_name,0)):
-plt.plot(range(start,end), scipy.stats.zscore(dF_over_F[start:end,best_neur[beh]]))
-plt.plot(range(start,end), behaviour[start:end,beh]*1)
+
+fig, ax = plt.subplots()
+
+ax.plot(time[start:end], scipy.stats.zscore(dF_over_F[start:end,best_neur[beh]]), label = 'neuron 35')
+ax.plot(time[start:end], behaviour[start:end,beh]*1, label = 'posterior grooming')
+
+ax.set_ylabel('standardised neuronal activity')
+ax.set_xlabel('time (sec)')
+
+plt.legend(loc='upper right')
     
 plt.show()
 #%%
-start= 14000
-end = 16200
+start= 13260
+end = 16100
 beh = 3
-#for i in range(np.size(labels_name,0)):
-plt.plot(range(start,end), scipy.stats.zscore(dF_over_F[start:end,best_neur[beh]]))
-plt.plot(range(start,end), behaviour[start:end,beh]*1)
+
+fig, ax = plt.subplots()
+
+ax.plot(time[start:end], scipy.stats.zscore(dF_over_F[start:end,best_neur[beh]]), label = 'neuron 50')
+ax.plot(time[start:end], behaviour[start:end,beh]*1, label = 'resting')
+
+ax.set_ylabel('standardised neuronal activity')
+ax.set_xlabel('time (sec)')
+
+plt.legend(loc='upper right')
     
 plt.show()
 #%%
-start= 2000
+start= 2050
 end = 3750
 beh = 4
-#for i in range(np.size(labels_name,0)):
-plt.plot(range(start,end), scipy.stats.zscore(dF_over_F[start:end,best_neur[beh]]))
-plt.plot(range(start,end), behaviour[start:end,beh]*1)
+
+fig, ax = plt.subplots()
+
+ax.plot(time[start:end], scipy.stats.zscore(dF_over_F[start:end,best_neur[beh]]), label = 'neuron 92')
+ax.plot(time[start:end], behaviour[start:end,beh]*1, label = 'walking')
+
+ax.set_ylabel('standardised neuronal activity')
+ax.set_xlabel('time (sec)')
+
+plt.legend(loc='upper right')
     
 plt.show()
-#%%
-#%%
-#%%
-#%%
-#%%
-#%%
-#%%
-#%%
-#%%
-#%%
-#%%
-#%%
-#%%
-#%%
-#%%
-#%%
