@@ -1,20 +1,11 @@
 #%% IMPORT
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
+from scipy.ndimage import gaussian_filter1d
+import scipy
 
 #%% Functions
-def compute_delta_F_over_F_frame(F):
-    # Sort the intensities
-    F_sorted = np.sort(F)
-    
-    # Calculate the baseline intensity
-    q10_index = int(0.1*np.size(F_sorted,1))
-    F0 = np.mean(F_sorted[:,:q10_index], axis=1)
-    
-    # Calculate flurescence changes and filter
-    delta_F_over_F = np.transpose((np.transpose(F)-F0)/F0)*100
-    
-    return delta_F_over_F
 
 def compute_delta_F_over_F_neuron(F):
     # Sort the intensities
@@ -27,7 +18,7 @@ def compute_delta_F_over_F_neuron(F):
     # Calculate flurescence changes and filter
     delta_F_over_F = (F-F0)/F0*100
     
-    return delta_F_over_F
+    return  delta_F_over_F #gaussian_filter1d(delta_F_over_F, 2) #
 
 def reduce_mean(values):
     return np.mean(values, axis=0)
@@ -114,11 +105,11 @@ def down_sampling(beh_df):
 
 def select_best_neurons(data, labels):
     
-    F_beh = []
+    df_ov_F = []
 
     # Select one of the two lines to choose between F and dF/F
     for label in labels_name:
-        F_beh.append(data[labels == label][:])
+        df_ov_F.append(data[labels == label][:])
     
     F_beh_mean = np.empty([0,123])
     F_beh_std = np.empty([0,123])
@@ -127,8 +118,8 @@ def select_best_neurons(data, labels):
     best_neurons = np.empty([0,123])
     
     for i in range(labels_name.size):
-        F_beh_mean = np.append(F_beh_mean,[np.mean(F_beh[i],0)], axis=0)
-        F_beh_std = np.append(F_beh_std,[np.std(F_beh[i],0)], axis=0)
+        F_beh_mean = np.append(F_beh_mean,[np.mean(df_ov_F[i],0)], axis=0)
+        F_beh_std = np.append(F_beh_std,[np.std(df_ov_F[i],0)], axis=0)
         neur_indexes_sorted_desc = np.append(neur_indexes_sorted_desc, \
                                              [np.argsort(F_beh_mean[i,:])[::-1]],axis=0)
         
@@ -158,33 +149,39 @@ def select_best_neurons(data, labels):
 beh_df = pd.read_pickle("COBAR_behaviour_incl_manual_corrected.pkl")
 neural_df = pd.read_pickle("COBAR_neural.pkl")
 
-F = neural_df.filter(regex = "neuron").to_numpy()
-dF_over_F_fr = compute_delta_F_over_F_frame(F)
-dF_over_F_ne = compute_delta_F_over_F_neuron(F)
+time = neural_df.filter(regex = "t").to_numpy()
 
+F = np.empty([0,123])
+dF_over_F = np.empty([0,123])
+for trial in range(12):
+    neural_trial = neural_df[neural_df.index.get_level_values("Trial") == trial]
+    F_trial = neural_trial.filter(regex = "neuron").to_numpy()
+    dF_over_F_trial = compute_delta_F_over_F_neuron(F_trial)
+    F = np.concatenate((F,F_trial))
+    dF_over_F = np.concatenate((dF_over_F, dF_over_F_trial))
+old_df = compute_delta_F_over_F_neuron(F)
+
+arf = old_df - dF_over_F
 labels = down_sampling(beh_df)
 labels_name = np.unique(labels)
 
 #%% Select best neurons
 
-#best_neurons_F, delta_min_F, mean_F, index_F = select_best_neurons(F, labels)
-#best_neurons_dF_fr, delta_min_dF_fr, mean_dF_fr, index_dF_fr = select_best_neurons(dF_over_F_fr, labels)
-best_neurons_dF_ne, delta_min_dF_ne, mean_dF_ne, std_dF_ne = select_best_neurons(dF_over_F_ne, labels)
+best_neurons, delta_min, mean, std = select_best_neurons(dF_over_F, labels)
 
 #%%
-prediction = np.empty([np.size(dF_over_F_ne,0),labels_name.size+2],dtype = 'O')
+prediction = np.empty([np.size(dF_over_F,0),labels_name.size+2],dtype = 'O')
 prediction[:,labels_name.size+1] = labels
 
-#best_neur = [71, 35, 24, 52, 97]
-best_neur = best_neurons_dF_ne[:,0].astype(int)
+best_neur = best_neurons[:,0].astype(int)
 
-for i in range(np.size(dF_over_F_ne,0)):
-    neurs = dF_over_F_ne[i,:]
+for i in range(np.size(dF_over_F,0)):
+    neurs = dF_over_F[i,:]
     maximum = 0
     max_index = -1
     for j in range(labels_name.size):
 
-        threshold = mean_dF_ne[j,best_neur[j]]-2*std_dF_ne[j,best_neur[j]]
+        threshold = mean[j,best_neur[j]]-2*std[j,best_neur[j]]
         if neurs[best_neur[j]] > threshold:
             prediction[i,j] = labels_name[j]
             delta = (neurs[best_neur[j]]-threshold)/threshold
@@ -201,12 +198,69 @@ no_prediction = sum(prediction[:,5] == 'None')
 accuracy = np.mean(prediction[:,5] == prediction[:,6])
 print(accuracy)
 #%%
+mean_sorted = np.sort(mean)[:,::-1]
+mean_ind_sorted = np.argsort(mean)[:,::-1]
+
 #%%
+behaviour = np.empty([np.size(labels,0),np.size(labels_name,0)])
+i = 0
+for label in labels_name:
+    behaviour[:,i] = labels == label
+    i += 1
+
 #%%
+# x = np.array(['abdominal_pushing', 'anterior_grooming',  'posterior_grooming',  'walking', 'resting' ])
+# y = mean_dF_ne[:,81]
+# e = std_dF_ne[:,81]
+
+# plt.errorbar(x, y, e, linestyle='None', marker='.')
+
+# plt.show()
 #%%
+start= 3000
+end = 5000
+beh = 0
+#for i in range(np.size(labels_name,0)):
+plt.plot(range(start,end), scipy.stats.zscore(dF_over_F[start:end,best_neur[beh]]))
+plt.plot(range(start,end), behaviour[start:end,beh]*1)
+    
+plt.show()
 #%%
+start= 8000
+end = 10000
+beh = 1
+#for i in range(np.size(labels_name,0)):
+plt.plot(range(start,end), scipy.stats.zscore(dF_over_F[start:end,best_neur[beh]]))
+plt.plot(range(start,end), behaviour[start:end,beh]*1)
+    
+plt.show()
 #%%
+start= 17500
+end = 20000
+beh = 2
+#for i in range(np.size(labels_name,0)):
+plt.plot(range(start,end), scipy.stats.zscore(dF_over_F[start:end,best_neur[beh]]))
+plt.plot(range(start,end), behaviour[start:end,beh]*1)
+    
+plt.show()
 #%%
+start= 14000
+end = 16200
+beh = 3
+#for i in range(np.size(labels_name,0)):
+plt.plot(range(start,end), scipy.stats.zscore(dF_over_F[start:end,best_neur[beh]]))
+plt.plot(range(start,end), behaviour[start:end,beh]*1)
+    
+plt.show()
+#%%
+start= 2000
+end = 3750
+beh = 4
+#for i in range(np.size(labels_name,0)):
+plt.plot(range(start,end), scipy.stats.zscore(dF_over_F[start:end,best_neur[beh]]))
+plt.plot(range(start,end), behaviour[start:end,beh]*1)
+    
+plt.show()
 #%%
 #%%
 #%%

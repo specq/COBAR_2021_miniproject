@@ -11,19 +11,6 @@ from behavelet import wavelet_transform
 
 labels_num = {'abdominal_pushing' : 0, 'anterior_grooming' : 1, 'posterior_grooming' : 2, 'walking' : 3, 'resting' : 4}
 
-def compute_delta_F_over_F_frame(F):
-    # Sort the intensities
-    F_sorted = np.sort(F, axis=0)
-    
-    # Calculate the baseline intensity
-    q10_index = int(0.1*np.size(F_sorted,1))
-    F0 = np.mean(F_sorted[:,:q10_index], axis=1)
-    
-    # Calculate flurescence changes and filter
-    delta_F_over_F = np.transpose((np.transpose(F)-F0)/F0)*100
-    
-    return delta_F_over_F
-
 def compute_delta_F_over_F_neuron(F):
     # Sort the intensities
     F_sorted = np.sort(F,0)
@@ -167,11 +154,19 @@ def create_data_set(data, beh_labels, val_ratio, test_ratio):
 beh_df = pd.read_pickle("COBAR_behaviour_incl_manual_corrected.pkl")
 neural_df = pd.read_pickle("COBAR_neural.pkl")
 labels = down_sampling(beh_df)
-F = neural_df.filter(regex = "neuron").to_numpy()
-dF_ov_F = compute_delta_F_over_F_neuron(F)
+F = np.empty([0,123])
+dF_ov_F = np.empty([0,123])
+for t in range(12):
+    neural_trial = neural_df[neural_df.index.get_level_values("Trial") == t]
+    F_trial = neural_trial.filter(regex = "neuron").to_numpy()
+    dF_ov_F_trial = compute_delta_F_over_F_neuron(F_trial)
+    F = np.concatenate((F,F_trial))
+    dF_ov_F = np.concatenate((dF_ov_F, dF_ov_F_trial))
+old_df = compute_delta_F_over_F_neuron(F)
 
+arf = old_df - dF_ov_F
 #%% PCA 
-PCA_object = PCA(n_components=10)
+PCA_object = PCA(n_components=4)
 dF_ov_F_proj = PCA_object.fit_transform(dF_ov_F)
 sum_proj = sum(PCA_object.explained_variance_ratio_)
 
@@ -185,8 +180,6 @@ train_ratio = 0.5
 
 x_train, y_train, weights, x_val, y_val, x_test, y_test = create_data_set(dF_ov_F_wav, labels, val_ratio, test_ratio)
 #%% Save test dataset
-# x_test_neur = np.concatenate([x_val,x_test],axis=0)
-# y_test_neur = np.concatenate([y_val,y_test],axis=0)
 
 file = open("test_neur.pkl", "wb")
 pickle.dump(x_test, file)
@@ -194,7 +187,7 @@ pickle.dump(y_test, file)
 file.close()
 
 #%% SVM Tuning
-C_svm = [1, 10, 100, 150, 250, 500, 750, 1000] 
+C_svm = [1, 100, 500, 750, 1000, 1500] 
 kernel = ['rbf', 'poly']
 
 params = np.empty((0,2))
@@ -217,8 +210,7 @@ best_score = scores[best_trial]
 best_params = params[best_trial]
 
 #%% SVM
-print("Start SVM")
-clf_svm = svm.SVC(C = 500, kernel = 'rbf') 
+clf_svm = svm.SVC(C = int(best_params[0]), kernel = best_params[1]) 
 clf_svm.fit(x_train, y_train,sample_weight=weights)
 pickle.dump(clf_svm, open('svm_neur_weight.sav', 'wb'))
 print("SVM model saved")
