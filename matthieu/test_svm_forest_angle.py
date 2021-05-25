@@ -1,9 +1,6 @@
 #%% IMPORT
-import pandas as pd
 import numpy as np
-import math
 import pickle
-from sklearn import svm
 from sklearn.metrics import confusion_matrix
 import matplotlib.pyplot as plt
 import itertools
@@ -32,20 +29,38 @@ def plot_confusion_matrix(cm, classes, normalize=False, title='Confusion matrix'
     plt.tight_layout()
     plt.ylabel('True label')
     plt.xlabel('Predicted label')
-
-
+    plt.show()
 
 #%% LOADING DATA
+
+#define the five behaviours encountered in the dataset
+classes = {'abdominal_pushing' : 0, 'anterior_grooming' : 1, 'posterior_grooming' : 2, 'walking' : 3, 'resting' : 4}
+
+#Load test data (x) with true labels (y)
 angle = open("test_angle.pkl", "rb")
 x_test_angle = pickle.load(angle)
 y_test_angle = pickle.load(angle)
+
+#Load classifiers
+forest_angles = pickle.load(open('forest_model_angle_weight.sav', 'rb'))
 svm_angles= pickle.load(open('svm_angle_weight.sav', 'rb'))
 
+#%% Random Forest prediction angles and plot
+
+#Predict the labels with the loaded model
+y_pred_angle = forest_angles.predict(x_test_angle)
+
+#Compute the score of the prediction and plot the confusion matrix
+score_angle_forest = np.mean(y_pred_angle == y_test_angle)
+cm_angle = confusion_matrix(y_test_angle, y_pred_angle)
+plot_confusion_matrix(cm_angle, classes, normalize=True, title='Confusion matrix Random Forest - Angles', cmap=plt.cm.Blues)
+
 #%% SVM prediction angles and plot
+
+#Predict the labels with the loaded model
 y_pred_angle = svm_angles.predict(x_test_angle)
 
-score_angle = np.mean(y_pred_angle == y_test_angle)
-  
+#Compute the score of the prediction and plot the confusion matrix
+score_angle_svm = np.mean(y_pred_angle == y_test_angle)  
 cm_angle = confusion_matrix(y_test_angle, y_pred_angle)
-classes = {'abdominal_pushing' : 0, 'anterior_grooming' : 1, 'posterior_grooming' : 2, 'walking' : 3, 'resting' : 4}
-plot_confusion_matrix(cm_angle, classes, normalize=True, title='Confusion matrix', cmap=plt.cm.Blues)
+plot_confusion_matrix(cm_angle, classes, normalize=True, title='Confusion matrix SVM - Angles', cmap=plt.cm.Blues)

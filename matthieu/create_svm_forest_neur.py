@@ -6,6 +6,7 @@ import pickle
 from sklearn.decomposition import PCA
 from sklearn import svm
 from behavelet import wavelet_transform
+from sklearn.ensemble import RandomForestClassifier
 
 #%% Functions 
 
@@ -151,9 +152,14 @@ def create_data_set(data, beh_labels, val_ratio, test_ratio):
     return x_train, y_train, weights, x_val, y_val, x_test, y_test
 
 #%% LOADING DATA
+
+#Load labels and neural data
 beh_df = pd.read_pickle("COBAR_behaviour_incl_manual_corrected.pkl")
 neural_df = pd.read_pickle("COBAR_neural.pkl")
+#down-sample the labels to match the neural data frequency
 labels = down_sampling(beh_df)
+
+#compute the fulorescence change for each trial 
 F = np.empty([0,123])
 dF_ov_F = np.empty([0,123])
 for t in range(12):
@@ -166,27 +172,42 @@ old_df = compute_delta_F_over_F_neuron(F)
 
 arf = old_df - dF_ov_F
 #%% PCA 
+#compute PCA to reduce the dimensions of the dataset 
 PCA_object = PCA(n_components=4)
 dF_ov_F_proj = PCA_object.fit_transform(dF_ov_F)
 sum_proj = sum(PCA_object.explained_variance_ratio_)
 
 #%% WAVELET
-freqs, power, dF_ov_F_wav = wavelet_transform(dF_ov_F_proj, n_freqs=25, fsample=100., fmin=1., fmax=50.)
+#compute wavelet transform to add dynamic
+_, _, dF_ov_F_wav = wavelet_transform(dF_ov_F_proj, n_freqs=25, fsample=100., fmin=1., fmax=50.)
 
 #%% EXTRACT DATA
+
+#split the dataset into test, train, validation
 val_ratio = 0.2
 test_ratio = 0.3
 train_ratio = 0.5
 
 x_train, y_train, weights, x_val, y_val, x_test, y_test = create_data_set(dF_ov_F_wav, labels, val_ratio, test_ratio)
 #%% Save test dataset
-
 file = open("test_neur.pkl", "wb")
 pickle.dump(x_test, file)
 pickle.dump(y_test, file)
 file.close()
 
+#%% Random Forest Classifier
+
+#compute the random forest model
+print("Start Random Forest")
+clf_forest = RandomForestClassifier()
+clf_forest.fit(x_train, y_train,sample_weight=weights)
+pickle.dump(clf_forest, open('forest_model_neur_weight.sav', 'wb'))
+print("Random Forest model saved")
+
+
 #%% SVM Tuning
+
+#find the best parameters for the SVM
 C_svm = [1, 100, 500, 750, 1000, 1500] 
 kernel = ['rbf', 'poly']
 
@@ -210,6 +231,8 @@ best_score = scores[best_trial]
 best_params = params[best_trial]
 
 #%% SVM
+
+#use the best parameters to compute the model
 clf_svm = svm.SVC(C = int(best_params[0]), kernel = best_params[1]) 
 clf_svm.fit(x_train, y_train,sample_weight=weights)
 pickle.dump(clf_svm, open('svm_neur_weight.sav', 'wb'))

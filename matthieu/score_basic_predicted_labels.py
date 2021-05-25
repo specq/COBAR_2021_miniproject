@@ -30,8 +30,6 @@ def plot_confusion_matrix(cm, classes, normalize=False, title='Confusion matrix'
     plt.ylabel('True label')
     plt.xlabel('Predicted label')
 
-
-
 #%% LOADING DATA
 classes = {'anterior_grooming' : 0, 'posterior_grooming' : 1, 'walking' :2, 'resting' : 3}
 classes_prediction = { 'antennal_grooming' : 0, 'eye_grooming' : 0, 'foreleg_grooming' : 0, 'hindleg_grooming' : 1, 'abdominal_grooming' : 1, 'walking' : 2, 'resting' : 3}

@@ -6,6 +6,7 @@ import pickle
 from sklearn.decomposition import PCA
 from sklearn import svm
 from behavelet import wavelet_transform
+from sklearn.ensemble import RandomForestClassifier
 
 #%% Functions 
 
@@ -56,34 +57,55 @@ def create_data_set(beh_angles, beh_labels, val_ratio, test_ratio):
     return x_train, y_train, weights, x_val, y_val, x_test, y_test
 
 #%% LOADING DATA
+
+#load labels and joint angles data
 beh_df = pd.read_pickle("COBAR_behaviour_incl_manual_corrected.pkl")
 angles = beh_df.filter(regex="angle").values
 labels = beh_df["Manual"].values
 
 #%% PCA 
+#compute PCA to reduce the dimensions of the dataset 
 PCA_object = PCA(n_components=17)
 angles_proj = PCA_object.fit_transform(angles)
 sum_proj = sum(PCA_object.explained_variance_ratio_)
 
 #%% WAVELET
-freqs, power, angles_wav = wavelet_transform(angles_proj, n_freqs=25, fsample=100., fmin=1., fmax=50.)
+#compute wavelet transform to add dynamic
+_, _, angles_wav = wavelet_transform(angles_proj, n_freqs=25, fsample=100., fmin=1., fmax=50.)
 
 #%% EXTRACT DATA
+
+#split the dataset into test, train, validation
 val_ratio = 0.2
 test_ratio = 0.3
 train_ratio = 0.5
 
 x_train, y_train, weights, x_val, y_val, x_test, y_test = create_data_set(angles_wav, labels, val_ratio, test_ratio)
 #%% Save test dataset
+
+#merge validation and test set as no tuning is done
 x_test_angle = np.concatenate([x_val,x_test],axis=0)
 y_test_angle = np.concatenate([y_val,y_test],axis=0)
 
+
+#save test dataset
 file = open("test_angle.pkl", "wb")
 pickle.dump(x_test_angle, file)
 pickle.dump(y_test_angle, file)
 file.close()
 
+#%% Random Forest Classifier
+
+#compute the random forest model
+print("Start Random Forest")
+clf_forest = RandomForestClassifier()
+clf_forest.fit(x_train, y_train,sample_weight=weights)
+pickle.dump(clf_forest, open('forest_model_angle_weight.sav', 'wb'))
+print("Random Forest model saved")
+
 #%% SVM
+
+#compute the SVM model
 print("Start SVM")
 clf_svm = svm.SVC() 
 clf_svm.fit(x_train, y_train,sample_weight=weights)

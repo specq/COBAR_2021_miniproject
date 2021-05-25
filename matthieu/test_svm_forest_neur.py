@@ -1,9 +1,6 @@
 #%% IMPORT
-import pandas as pd
 import numpy as np
-import math
 import pickle
-from sklearn import svm
 from sklearn.metrics import confusion_matrix
 import matplotlib.pyplot as plt
 import itertools
@@ -32,20 +29,38 @@ def plot_confusion_matrix(cm, classes, normalize=False, title='Confusion matrix'
     plt.tight_layout()
     plt.ylabel('True label')
     plt.xlabel('Predicted label')
-
-
+    plt.show()
 
 #%% LOADING DATA
+
+#define the five behaviours encountered in the dataset
+classes = {'abdominal_pushing' : 0, 'anterior_grooming' : 1, 'posterior_grooming' : 2, 'walking' : 3, 'resting' : 4}
+
+#Load test data (x) with true labels (y)
 neur = open("test_neur.pkl", "rb") 
 x_test_neur = pickle.load(neur)
 y_test_neur = pickle.load(neur)
+
+#Load classifiers
+forest_neurons = pickle.load(open('forest_model_neur_weight.sav', 'rb'))
 svm_neurons = pickle.load(open('svm_neur_weight.sav', 'rb'))
 
+#%% Random Forest prediction neurons and plot
+
+#Predict the labels with the loaded model
+y_pred_neur = forest_neurons.predict(x_test_neur)
+
+#Compute the score of the prediction and plot the confusion matrix
+score_neur_forest = np.mean(y_pred_neur == y_test_neur)  
+cm_neur = confusion_matrix(y_test_neur, y_pred_neur)
+plot_confusion_matrix(cm_neur, classes, normalize=True, title='Confusion matrix Random Forest - Neurons', cmap=plt.cm.Blues)
+
 #%% SVM prediction neurons and plot
+
+#Predict the labels with the loaded model
 y_pred_neur = svm_neurons.predict(x_test_neur)
 
-score_neur = np.mean(y_pred_neur == y_test_neur)
-
+#Compute the score of the prediction and plot the confusion matrix
+score_neur_svm = np.mean(y_pred_neur == y_test_neur)
 cm_neur = confusion_matrix(y_test_neur, y_pred_neur)
-classes = {'abdominal_pushing' : 0, 'anterior_grooming' : 1, 'posterior_grooming' : 2, 'walking' : 3, 'resting' : 4}
-plot_confusion_matrix(cm_neur, classes, normalize=True, title='Confusion matrix', cmap=plt.cm.Blues)
+plot_confusion_matrix(cm_neur, classes, normalize=True, title='Confusion matrix SVM - Neurons', cmap=plt.cm.Blues)
