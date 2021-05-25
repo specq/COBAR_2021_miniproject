@@ -1,9 +1,6 @@
 #%% IMPORT
 import pandas as pd
 import numpy as np
-import math
-import pickle
-from sklearn import svm
 from sklearn.metrics import confusion_matrix
 import matplotlib.pyplot as plt
 import itertools
@@ -36,16 +33,18 @@ def plot_confusion_matrix(cm, classes, normalize=False, title='Confusion matrix'
 
 
 #%% LOADING DATA
-neur = open("test_neur.pkl", "rb") 
-x_test_neur = pickle.load(neur)
-y_test_neur = pickle.load(neur)
-svm_neurons = pickle.load(open('svm_neur_weight.sav', 'rb'))
+classes = {'anterior_grooming' : 0, 'posterior_grooming' : 1, 'walking' :2, 'resting' : 3}
+classes_prediction = { 'antennal_grooming' : 0, 'eye_grooming' : 0, 'foreleg_grooming' : 0, 'hindleg_grooming' : 1, 'abdominal_grooming' : 1, 'walking' : 2, 'resting' : 3}
+beh_df = pd.read_pickle("COBAR_behaviour_incl_manual_corrected.pkl")
+labels_manual = beh_df["Manual"].values
+labels_prediction = beh_df["Prediction"].values
+labels_prediction = np.delete(labels_prediction,labels_manual == 'abdominal_pushing')
+labels_manual = np.delete(labels_manual,labels_manual == 'abdominal_pushing')
 
-#%% SVM prediction neurons and plot
-y_pred_neur = svm_neurons.predict(x_test_neur)
+score = np.mean(labels_prediction == labels_manual)
 
-score_neur = np.mean(y_pred_neur == y_test_neur)
-
-cm_neur = confusion_matrix(y_test_neur, y_pred_neur)
-classes = {'abdominal_pushing' : 0, 'anterior_grooming' : 1, 'posterior_grooming' : 2, 'walking' : 3, 'resting' : 4}
-plot_confusion_matrix(cm_neur, classes, normalize=True, title='Confusion matrix', cmap=plt.cm.Blues)
+y_predicted = [classes_prediction[p] for p in labels_prediction]
+y_true = [classes[p] for p in labels_manual]
+ 
+cm_angle = confusion_matrix(y_true, y_predicted)
+plot_confusion_matrix(cm_angle, classes, normalize=True, title='Confusion matrix', cmap=plt.cm.Blues)

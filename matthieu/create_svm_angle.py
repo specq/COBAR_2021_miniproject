@@ -89,28 +89,3 @@ clf_svm = svm.SVC()
 clf_svm.fit(x_train, y_train,sample_weight=weights)
 pickle.dump(clf_svm, open('svm_angle_weight.sav', 'wb'))
 print("SVM model saved")
-
-#%%
-#%%
-#%%
-#%%
-#%%
-#%%
-#%%
-#%%
-#%%
-#%%
-#%%
-#%%
-#%%
-#%%
-#%%
-#%%
-#%%
-#%%
-#%%
-#%%
-#%%
-#%%
-#%%
-#%%

@@ -214,26 +214,3 @@ clf_svm = svm.SVC(C = int(best_params[0]), kernel = best_params[1])
 clf_svm.fit(x_train, y_train,sample_weight=weights)
 pickle.dump(clf_svm, open('svm_neur_weight.sav', 'wb'))
 print("SVM model saved")
-#%%
-#%%
-#%%
-#%%
-#%%
-#%%
-#%%
-#%%
-#%%
-#%%
-#%%
-#%%
-#%%
-#%%
-#%%
-#%%
-#%%
-#%%
-#%%
-#%%
-#%%
-#%%
-#%%

@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.ndimage import gaussian_filter1d
 import scipy
+from scipy.stats import zscore
 
 #%% Functions
 
@@ -187,7 +188,7 @@ beh = 0
 
 fig, ax = plt.subplots()
 
-ax.plot(time[start:end], scipy.stats.zscore(dF_over_F[start:end,best_neur[beh]]), label = 'neuron 54')
+ax.plot(time[start:end], zscore(dF_over_F[start:end,best_neur[beh]]), label = 'neuron 54')
 ax.plot(time[start:end], behaviour[start:end,beh]*1, label = 'abdominal pushing')
 
 ax.set_ylabel('standardised neuronal activity')
@@ -219,7 +220,7 @@ beh = 2
 
 fig, ax = plt.subplots()
 
-ax.plot(time[start:end], scipy.stats.zscore(dF_over_F[start:end,best_neur[beh]]), label = 'neuron 35')
+ax.plot(time[start:end], zscore(dF_over_F[start:end,best_neur[beh]]), label = 'neuron 35')
 ax.plot(time[start:end], behaviour[start:end,beh]*1, label = 'posterior grooming')
 
 ax.set_ylabel('standardised neuronal activity')
@@ -235,7 +236,7 @@ beh = 3
 
 fig, ax = plt.subplots()
 
-ax.plot(time[start:end], scipy.stats.zscore(dF_over_F[start:end,best_neur[beh]]), label = 'neuron 50')
+ax.plot(time[start:end], zscore(dF_over_F[start:end,best_neur[beh]]), label = 'neuron 50')
 ax.plot(time[start:end], behaviour[start:end,beh]*1, label = 'resting')
 
 ax.set_ylabel('standardised neuronal activity')
@@ -251,7 +252,7 @@ beh = 4
 
 fig, ax = plt.subplots()
 
-ax.plot(time[start:end], scipy.stats.zscore(dF_over_F[start:end,best_neur[beh]]), label = 'neuron 92')
+ax.plot(time[start:end], zscore(dF_over_F[start:end,best_neur[beh]]), label = 'neuron 92')
 ax.plot(time[start:end], behaviour[start:end,beh]*1, label = 'walking')
 
 ax.set_ylabel('standardised neuronal activity')
@@ -259,4 +260,44 @@ ax.set_xlabel('time (sec)')
 
 plt.legend(loc='upper right')
     
+plt.show()
+#%%
+start= 17500
+end = 20000
+beh = 2
+
+fig, ax = plt.subplots()
+
+ax.plot(time[start:end], zscore(dF_over_F[start:end,69]), label = 'neuron 92')
+ax.plot(time[start:end], behaviour[start:end,2]*1, label = 'walking')
+
+ax.set_ylabel('standardised neuronal activity')
+ax.set_xlabel('time (sec)')
+
+plt.legend(loc='upper right')
+    
+plt.show()
+
+#%%
+classes = {'abdominal_pushing' : 0, 'anterior_grooming' : 1, 'posterior_grooming' : 2, 'resting' : 3,'walking' : 4}
+plt.style.use('seaborn-whitegrid')
+
+fig, ax = plt.subplots()
+
+ax.errorbar( range(5),mean[:,53], yerr=std[:,53], fmt='.');
+tick_marks = np.arange(len(classes))
+plt.xticks(tick_marks, classes, rotation=90)
+ax.set_ylabel('fluorescent change')
+ax.set_xlabel('behaviours')
+
+plt.show()
+
+fig, ax = plt.subplots()
+
+ax.errorbar( range(5),mean[:,54], yerr=std[:,54], fmt='.');
+tick_marks = np.arange(len(classes))
+plt.xticks(tick_marks, classes, rotation=90)
+ax.set_ylabel('fluorescent change')
+ax.set_xlabel('behaviours')
+
 plt.show()

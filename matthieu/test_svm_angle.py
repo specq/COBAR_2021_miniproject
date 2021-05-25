@@ -49,28 +49,3 @@ score_angle = np.mean(y_pred_angle == y_test_angle)
 cm_angle = confusion_matrix(y_test_angle, y_pred_angle)
 classes = {'abdominal_pushing' : 0, 'anterior_grooming' : 1, 'posterior_grooming' : 2, 'walking' : 3, 'resting' : 4}
 plot_confusion_matrix(cm_angle, classes, normalize=True, title='Confusion matrix', cmap=plt.cm.Blues)
-
-#%%
-#%%
-#%%
-#%%
-#%%
-#%%
-#%%
-#%%
-#%%
-#%%
-#%%
-#%%
-#%%
-#%%
-#%%
-#%%
-#%%
-#%%
-#%%
-#%%
-#%%
-#%%
-#%%
-#%%
