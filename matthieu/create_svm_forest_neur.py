@@ -168,9 +168,7 @@ for t in range(12):
     dF_ov_F_trial = compute_delta_F_over_F_neuron(F_trial)
     F = np.concatenate((F,F_trial))
     dF_ov_F = np.concatenate((dF_ov_F, dF_ov_F_trial))
-old_df = compute_delta_F_over_F_neuron(F)
 
-arf = old_df - dF_ov_F
 #%% PCA 
 #compute PCA to reduce the dimensions of the dataset 
 PCA_object = PCA(n_components=4)
